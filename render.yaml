@@ -1,0 +1,41 @@
+services:
+  # ==========================================
+  # 1. FastAPI Backend Service (Python)
+  # ==========================================
+  - type: web
+    name: ai-agent-dashboard-api
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt && python seed.py"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.11
+      - key: DATABASE_URL
+        value: sqlite:///./usage.db
+      - key: API_KEY
+        value: ai-dash-secret-key-2026
+      - key: CORS_ORIGINS
+        value: '["*"]'
+
+  # ==========================================
+  # 2. Next.js Frontend Service (Node.js)
+  # ==========================================
+  - type: web
+    name: ai-agent-dashboard-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm start"
+    envVars:
+      - key: NODE_VERSION
+        value: 20.x
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: ai-agent-dashboard-api
+          property: host
